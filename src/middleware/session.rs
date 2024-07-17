@@ -10,6 +10,7 @@ use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::Arc;
+use log::info;
 
 static COOKIE_NAME: &str = "cargo_session";
 static MAX_AGE_DAYS: i64 = 90;
@@ -55,6 +56,8 @@ pub async fn attach_session(jar: SignedCookieJar, mut req: Request, next: Next) 
 
     // Save decoded session data in request extension,
     // and keep an `Arc` clone for later
+    info!("twosatsmaxi current data: {:?}", data);
+    info!("request url: {:?}", req.uri());
     let session = SessionExtension::new(Session::new(data));
     req.extensions_mut().insert(session.clone());
 
@@ -64,6 +67,7 @@ pub async fn attach_session(jar: SignedCookieJar, mut req: Request, next: Next) 
     // Check if the session data was mutated
     let session = session.read();
     if session.dirty {
+        info!("twosatsmaxi session data mutated");
         // Return response with additional `Set-Cookie` header
         let encoded = encode(&session.data);
         let cookie = Cookie::build((COOKIE_NAME, encoded))
@@ -75,6 +79,7 @@ pub async fn attach_session(jar: SignedCookieJar, mut req: Request, next: Next) 
 
         (jar.add(cookie), response).into_response()
     } else {
+        info!("twosatsmaxi session data not mutated");
         response
     }
 }

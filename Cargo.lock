@@ -1029,6 +1029,7 @@ dependencies = [
  "insta",
  "ipnetwork",
  "lettre",
+ "log",
  "minijinja",
  "mockall",
  "oauth2",
