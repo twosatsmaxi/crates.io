@@ -67,9 +67,10 @@ pub async fn attach_session(jar: SignedCookieJar, mut req: Request, next: Next) 
     // Check if the session data was mutated
     let session = session.read();
     if session.dirty {
-        info!("twosatsmaxi session data mutated");
+        info!("twosatsmaxi session data mutated data: {:?}", &session.data);
         // Return response with additional `Set-Cookie` header
         let encoded = encode(&session.data);
+        info!("twosatsmaxi encoded data: {:?}", &encoded);
         let cookie = Cookie::build((COOKIE_NAME, encoded))
             .http_only(true)
             .secure(true)
