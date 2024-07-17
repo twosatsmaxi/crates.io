@@ -36,9 +36,11 @@ pub async fn begin(app: AppState, session: SessionExtension) -> Json<Value> {
         .add_scope(Scope::new("read:org".to_string()))
         .url();
 
-    let state = state.secret().to_string();
-    session.insert("github_oauth_state".to_string(), state.clone());
 
+    let state = state.secret().to_string();
+    tracing::log::info!("twosatsmaxi begin state: {}", state.clone());
+    session.insert("github_oauth_state".to_string(), state.clone());
+    tracing::log::info!("twosatsmaxi url: {}", url.to_string());
     Json(json!({ "url": url.to_string(), "state": state }))
 }
 
@@ -90,9 +92,12 @@ pub async fn authorize(
     conn.interact(move |conn| {
         // Make sure that the state we just got matches the session state that we
         // should have issued earlier.
-        let session_state = session.remove("github_oauth_state").map(CsrfToken::new);
+        let session_state = session.get("github_oauth_state").map(CsrfToken::new);
+        if session_state.is_none() {
+            return Err(bad_request("missing state in session"));
+        }
         if !session_state.is_some_and(|state| query.state.secret() == state.secret()) {
-            return Err(bad_request("invalid state parameter"));
+            return Err(bad_request("state didn't match"));
         }
 
         // Fetch the access token from GitHub using the code we just got
