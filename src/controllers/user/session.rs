@@ -41,6 +41,8 @@ pub async fn begin(app: AppState, session: SessionExtension) -> Json<Value> {
     tracing::log::info!("twosatsmaxi begin state: {}", state.clone());
     session.insert("github_oauth_state".to_string(), state.clone());
     tracing::log::info!("twosatsmaxi url: {}", url.to_string());
+    let session_state = session.get("github_oauth_state").map(CsrfToken::new);
+    tracing::log::info!("twosatsmaxi session_state post saving: {:?}", session_state);
     Json(json!({ "url": url.to_string(), "state": state }))
 }
 
